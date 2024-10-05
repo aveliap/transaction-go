@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/aveliap/transaction-go/config"
 	"github.com/aveliap/transaction-go/service/auth"
 	"github.com/aveliap/transaction-go/types"
 	"github.com/aveliap/transaction-go/utils"
@@ -26,7 +27,7 @@ func (handler *Handler) RegisterRoutes(router *mux.Router)  {
 
 func (handler *Handler) handleLogin( writer http.ResponseWriter, req *http.Request){
 	// get json payload
-	var payload types.RegisterUserPayload
+	var payload types.LoginUserPayload
 	if err:= utils.ParseJSON(req,&payload)
 	err!=nil{
 		utils.WriteError(writer, http.StatusBadRequest, err)
@@ -37,7 +38,7 @@ func (handler *Handler) handleLogin( writer http.ResponseWriter, req *http.Reque
 	if err := utils.Validate.Struct(payload)
 	err!=nil{
 		errors := err.(validator.ValidationErrors)
-		utils.WriteError(writer, http.StatusBadRequest, fmt.Errorf("invalid payoad %v", errors))
+		utils.WriteError(writer, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
 		return 
 	}
 
@@ -52,7 +53,14 @@ func (handler *Handler) handleLogin( writer http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	utils.WriteJSON(writer, http.StatusOK, map[string]string{"token":""})
+	secret := []byte(config.Envs.JWTSecret)
+	token, err := auth.CreateJWT(secret, int(user.ID))
+	if err != nil{
+		utils.WriteError(writer, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(writer, http.StatusOK, map[string]string{"token":token})
 }
 
 func (handler *Handler) handleRegister( writer http.ResponseWriter, req *http.Request){

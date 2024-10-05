@@ -18,7 +18,7 @@ func NewRepo(db *sql.DB) *Repo  {
 }
 
 func (repo *Repo) GetUserByEmail(email string) (*types.User, error) {
-	rows, err := repo.db.Query("SELECT * FROM users WHERE email=?", email)
+	rows, err := repo.db.Query("SELECT * FROM users WHERE email=$1", email)
 
 	if err != nil {
 		return nil,err
@@ -38,7 +38,7 @@ func (repo *Repo) GetUserByEmail(email string) (*types.User, error) {
 
 
 func (repo *Repo) GetUserByID (id uint) (*types.User, error)  {
-	rows, err := repo.db.Query("SELECT * FROM users WHERE id=?", id)
+	rows, err := repo.db.Query("SELECT * FROM users WHERE id=$1", id)
 
 	if err != nil {
 		return nil,err
