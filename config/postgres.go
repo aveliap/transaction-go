@@ -12,6 +12,7 @@ type Config struct{
 	DBUser string
 	DBPassword string
 	DBName string
+	JWTExpirationInSeconds int64
 }
 
 var Envs = initConfig()
@@ -27,5 +28,6 @@ func initConfig() Config  {
 		DBUser: GetEnv("POSTGRES_USER"),
 		DBPassword: GetEnv("POSTGRES_PASSWORD"),
 		DBName: GetEnv("POSTGRES_DB"),
+		JWTExpirationInSeconds: GetEnvAsInt("JWT_EXP", 3600),
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/aveliap/transaction-go/types"
+	"github.com/lib/pq"
 )
 
 type Repo struct{
@@ -63,6 +64,9 @@ func (repo *Repo) CreateUser (user types.User) error  {
 	_, err := repo.db.Exec("INSERT INTO users (\"firstName\", \"lastName\", \"email\", \"password\") VALUES ($1, $2, $3, $4)",
 				user.FirstName,user.LastName,user.Email,user.Password)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" { // "23505" is the PostgreSQL error code for unique violation
+		return fmt.Errorf("user with email %s already exists", user.Email)
+	}
 		return err
 	}
 	return nil

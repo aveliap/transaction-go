@@ -25,7 +25,34 @@ func (handler *Handler) RegisterRoutes(router *mux.Router)  {
 }
 
 func (handler *Handler) handleLogin( writer http.ResponseWriter, req *http.Request){
+	// get json payload
+	var payload types.RegisterUserPayload
+	if err:= utils.ParseJSON(req,&payload)
+	err!=nil{
+		utils.WriteError(writer, http.StatusBadRequest, err)
+		return
+	}
 
+	// validate
+	if err := utils.Validate.Struct(payload)
+	err!=nil{
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(writer, http.StatusBadRequest, fmt.Errorf("invalid payoad %v", errors))
+		return 
+	}
+
+	user, err := handler.Repo.GetUserByEmail(payload.Email)
+	if err != nil{
+		utils.WriteError(writer, http.StatusBadRequest, fmt.Errorf("not found, invalid email or password"))
+		return
+	}
+
+	if !auth.ComparePassword(user.Password, []byte(payload.Password)) {
+		utils.WriteError(writer, http.StatusBadRequest, fmt.Errorf("not found, invalid password"))
+		return
+	}
+
+	utils.WriteJSON(writer, http.StatusOK, map[string]string{"token":""})
 }
 
 func (handler *Handler) handleRegister( writer http.ResponseWriter, req *http.Request){
